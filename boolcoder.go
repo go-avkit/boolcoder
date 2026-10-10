@@ -23,7 +23,10 @@
 // normalises differently; it belongs beside this rather than inside it.
 package boolcoder
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // valueBits is the width of the window the arithmetic value lives in.
 const valueBits = 32
@@ -118,7 +121,20 @@ func (d *Decoder) Bool(probability uint8) uint32 {
 }
 
 // Literal reads n raw bits, most significant first: n even chances in a row.
+//
+// n is 0 to 32, which is what the result holds. ⛔ It PANICS outside that,
+// rather than shifting the first bits out of the uint32 and returning a value
+// that is not the field asked for -- which is what it used to do, silently.
+//
+// A panic is right here and an error is not: every width in VP8 and VP9 is a
+// CONSTANT of the syntax, so one outside the range is a mistake in the caller's
+// code, not something a stream can state. Measured across go-avkit: every call
+// to Literal and Signed passes a constant, and the only variable one is
+// Signed's own call below.
 func (d *Decoder) Literal(n int) uint32 {
+	if n < 0 || n > 32 {
+		panic(fmt.Sprintf("boolcoder: Literal(%d): a width the result cannot hold", n))
+	}
 	var v uint32
 	for i := 0; i < n; i++ {
 		v = v<<1 | d.Bool(128)
