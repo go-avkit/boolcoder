@@ -44,6 +44,21 @@ reads it.
 **Windows, macOS, Linux; six 64-bit architectures.** 100% statement coverage,
 gated in CI.
 
+## A width the result cannot hold
+
+`Literal` returns a `uint32`, so `n` is 0 to 32 and it **panics** outside that.
+
+⛔ It used to shift the first bits out of the `uint32` in silence and return a
+value that was not the field asked for — the same shape as
+[`bitstream`'s `Bits`](https://github.com/go-avkit/bitstream/pull/7), fixed the
+same evening.
+
+A panic is right here and an error is not: **every width in VP8 and VP9 is a
+constant of the syntax**, so one outside the range is a mistake in the caller's
+code, not something a stream can state. That was measured rather than assumed —
+across `go-avkit`, every call to `Literal` and `Signed` passes a constant, and
+the only variable one is `Signed`'s own call to `Literal`.
+
 ## Licence
 
 BSD-3-Clause.

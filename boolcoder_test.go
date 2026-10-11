@@ -156,3 +156,37 @@ func TestReadingPastTheEndIsReportedAtTheEnd(t *testing.T) {
 		t.Errorf("one byte: %v", err)
 	}
 }
+
+// TestAWidthTheResultCannotHold.
+//
+// ⛔ Literal shifts into a uint32. Outside 0..32 it used to shift the first
+// bits out in silence and return a value that was not the field asked for.
+//
+// It panics rather than returning an error because every width in VP8 and VP9
+// is a CONSTANT of the syntax: one outside the range is a mistake in the
+// caller's code, not something a stream can state. Measured across go-avkit,
+// every call passes a constant.
+func TestAWidthTheResultCannotHold(t *testing.T) {
+	for _, n := range []int{-1, 33, 64, 1 << 20} {
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("Literal(%d) returned instead of panicking", n)
+				}
+			}()
+			_ = NewDecoder([]byte{0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x11}).Literal(n)
+		}()
+	}
+	// Both ends of the range are READ: refusing either would refuse a width
+	// the syntax states.
+	for _, n := range []int{0, 1, 32} {
+		func() {
+			defer func() {
+				if p := recover(); p != nil {
+					t.Errorf("Literal(%d) panicked: %v", n, p)
+				}
+			}()
+			_ = NewDecoder([]byte{0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x11}).Literal(n)
+		}()
+	}
+}
