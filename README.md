@@ -1,5 +1,11 @@
 # boolcoder
 
+[![ci](https://github.com/go-avkit/boolcoder/actions/workflows/ci.yml/badge.svg)](https://github.com/go-avkit/boolcoder/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/go-avkit/boolcoder.svg)](https://pkg.go.dev/github.com/go-avkit/boolcoder)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](LICENSE)
+
+Part of [go-avkit](https://go-avkit.github.io): [documentation](https://go-avkit.github.io/docs/).
+
 Pure-Go (CGO=0) boolean arithmetic decoder — the entropy coder VP8 and VP9 both
 read their compressed partitions with.
 
